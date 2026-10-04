@@ -76,10 +76,10 @@ curl_setopt_array($ch, [
     CURLOPT_POSTFIELDS => json_encode([
         'seats' => $expiredSeats
     ]),
-    CURLOPT_HTTPHEADER => [
-        'Content-Type: application/json',
-        'X-Internal-Token' => 'sk_test_7f9K2mQ8xP4vL6nR3tY1wZ5a'
-    ],
+    // CURLOPT_HTTPHEADER => [
+    //     'Content-Type: application/json',
+    //     'X-Internal-Token' => 'sk_test_7f9K2mQ8xP4vL6nR3tY1wZ5a'
+    // ],
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_TIMEOUT => 5,
 ]);
