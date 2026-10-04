@@ -1,0 +1,42 @@
+2026-10-04 03:54:00 pid:1 Error: Call to undefined function getListRecords() in C:\Users\PC\Videos\Github\bookings\socket\socket-server.php:73
+Stack trace:
+#0 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(127): getSeatsByTripId(1)
+#1 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Connection\TcpConnection.php(805): {closure}(Object(Workerman\Connection\TcpConnection), '{"action":"join...')
+#2 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Events\Select.php(406): Workerman\Connection\TcpConnection->baseRead(Resource id #20)
+#3 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1620): Workerman\Events\Select->run()
+#4 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1536): Workerman\Worker::forkWorkersForWindows()
+#5 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(603): Workerman\Worker::forkWorkers()
+#6 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(165): Workerman\Worker::runAll()
+#7 {main}
+2026-10-04 03:55:18 pid:1 Error: Call to undefined function basePath() in C:\Users\PC\Videos\Github\bookings\socket\socket-server.php:49
+Stack trace:
+#0 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(89): getListRecords('SELECT \r\n      ...', 1)
+#1 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(143): getSeatsByTripId(1)
+#2 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Connection\TcpConnection.php(805): {closure}(Object(Workerman\Connection\TcpConnection), '{"action":"join...')
+#3 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Events\Select.php(406): Workerman\Connection\TcpConnection->baseRead(Resource id #20)
+#4 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1620): Workerman\Events\Select->run()
+#5 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1536): Workerman\Worker::forkWorkersForWindows()
+#6 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(603): Workerman\Worker::forkWorkers()
+#7 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(181): Workerman\Worker::runAll()
+#8 {main}
+2026-10-04 03:57:01 pid:1 Error: Object of type Framework\TripDb is not callable in C:\Users\PC\Videos\Github\bookings\socket\socket-server.php:60
+Stack trace:
+#0 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(96): getListRecords('SELECT \r\n      ...', 1)
+#1 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(150): getSeatsByTripId(1)
+#2 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Connection\TcpConnection.php(805): {closure}(Object(Workerman\Connection\TcpConnection), '{"action":"join...')
+#3 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Events\Select.php(406): Workerman\Connection\TcpConnection->baseRead(Resource id #20)
+#4 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1620): Workerman\Events\Select->run()
+#5 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1536): Workerman\Worker::forkWorkersForWindows()
+#6 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(603): Workerman\Worker::forkWorkers()
+#7 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(188): Workerman\Worker::runAll()
+#8 {main}
+2026-10-04 09:31:09 pid:1 InvalidArgumentException: Invalid status: hold in C:\Users\PC\Videos\Github\bookings\socket\socket-server.php:103
+Stack trace:
+#0 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(191): updateSeatStatusByTripId(1, 6, 'hold')
+#1 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Connection\TcpConnection.php(805): {closure}(Object(Workerman\Connection\TcpConnection), '{"action":"seat...')
+#2 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Events\Select.php(406): Workerman\Connection\TcpConnection->baseRead(Resource id #33)
+#3 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1620): Workerman\Events\Select->run()
+#4 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(1536): Workerman\Worker::forkWorkersForWindows()
+#5 C:\Users\PC\Videos\Github\bookings\vendor\workerman\workerman\src\Worker.php(603): Workerman\Worker::forkWorkers()
+#6 C:\Users\PC\Videos\Github\bookings\socket\socket-server.php(230): Workerman\Worker::runAll()
+#7 {main}

@@ -1,0 +1,19 @@
+{
+    "name": "vu/bookings",
+    "description": "bookings app for fyp",
+    "authors": [
+        {
+            "name": "Umar",
+            "email": "muhammad.umar@core9.ai"
+        }
+    ],
+    "require": {
+        "workerman/workerman": "^5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Framework\\": "Framework/",
+            "App\\": "App/"
+        }
+    }
+}
