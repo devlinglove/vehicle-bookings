@@ -68,23 +68,9 @@
                     </span>
                 </div>
 
-                <!-- <?php foreach($seats as $seat) : ?> 
-                    <button 
-                    type="button" 
-                    data-seat="12"
-                    class="w-12 rounded-xl text-sm font-bold border-2 border-slate-200 bg-white text-slate-700 hover:border-[#0B5299]">
-                    <?=  $seat->seat_number;  ?>
-                </button>
-                  <?php endforeach; ?> -->
-
                 <div class="relative seat-grid flex flex-wrap gap-2">
                     
                 </div>
-                  
-
-                
-
-               
 
                 <div class="mt-4 border-t-2 border-dashed border-slate-200 pt-3 text-center text-xs font-semibold text-slate-400">Back</div>
             </div>
@@ -96,14 +82,15 @@
             <div class="rounded-3xl bg-white p-6 ring-1 ring-slate-100">
                 <h2 class="mb-4 text-base font-bold text-navy-900">Seat guide</h2>
                 <ul class="grid grid-cols-1 gap-3 text-sm text-slate-600 sm:grid-cols-2 sm:gap-x-6">
-                    <li class="flex items-center gap-3"><span class="h-6 w-6 shrink-0 rounded-md bg-rose-400"></span>Reserved (female)</li>
-                    <li class="flex items-center gap-3"><span class="h-6 w-6 shrink-0 rounded-md bg-navy-600"></span>Reserved (male)</li>
-                    <li class="flex items-center gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 border-rose-400 bg-rose-50 text-rose-500"><svg viewBox="0 0 20 20" class="h-3.5 w-3.5" fill="currentColor">
+                    <li class="flex items-center gap-3"><span class="h-6 w-6 shrink-0 rounded-md bg-navy-600"></span>Reserved</li>
+                    <li class="flex items-center gap-3">
+                        <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 border-navy-600 bg-navy-50 text-navy-600">
+                            <svg viewBox="0 0 20 20" class="h-3.5 w-3.5" fill="currentColor">
                                 <path d="M7.6 13.2 4.4 10l-1.1 1.1 4.3 4.3 9-9-1.1-1.1z" />
-                            </svg></span>Selected (female)</li>
-                    <li class="flex items-center gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 border-navy-600 bg-navy-50 text-navy-600"><svg viewBox="0 0 20 20" class="h-3.5 w-3.5" fill="currentColor">
-                                <path d="M7.6 13.2 4.4 10l-1.1 1.1 4.3 4.3 9-9-1.1-1.1z" />
-                            </svg></span>Selected (male)</li>
+                            </svg>
+                        </span>
+                        Selected
+                    </li>
                     <li class="flex items-center gap-3"><span class="h-6 w-6 shrink-0 rounded-md border-2 border-slate-200 bg-white"></span>Available</li>
                 </ul>
             </div>
@@ -120,18 +107,20 @@
                 </div>
 
                 <dl class="mt-5 space-y-2 border-t border-slate-100 pt-5 text-sm">
-                    <div class="flex justify-between text-slate-500">
+                    <!-- <div class="flex justify-between text-slate-500">
                         <dt>Fare per seat</dt>
                         <dd>Rs 2,500</dd>
-                    </div>
-                    <div class="flex justify-between text-base font-bold text-navy-900">
+                    </div> -->
+                    <div class="flex justify-between text-base font-bold text-navy-900 total-container hidden">
                         <dt>Total</dt>
-                        <dd>Rs 2,500</dd>
+                        <dd class="total-price">Rs 2,500</dd>
                     </div>
                 </dl>
 
-                <button type="button"
-                    class="mt-5 w-full rounded-2xl bg-navy-600 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-navy-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-navy-100 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400">
+                <button 
+                    type="button"
+                    class="payment-button mt-5 w-full rounded-2xl bg-navy-600 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-navy-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-navy-100 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                >
                     Continue to passenger details
                 </button>
 

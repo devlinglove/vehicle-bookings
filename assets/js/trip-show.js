@@ -20,8 +20,10 @@ let socketSeats = []
 // });
 
 const chipContainer = document.querySelector('.chip-container')
+const totalContainer = document.querySelector('.total-container')
+const totalPrice = document.querySelector('.total-price');
+const paymentButton = document.querySelector('.payment-button');
 
-// Attach ONCE, outside render()
 chipContainer.addEventListener('click', (e) => {
     const btn = e.target.closest('.remove-seat')
     if (!btn) return
@@ -44,38 +46,55 @@ function removeFromHold(seatId) {
         status: 'available'
     }));
 
-
-    renderSeats()
+    // renderSelectedSeats()
+    // renderSeats()
 
 
 }
 
 socket.onopen = function () {
     console.log('Connected');
-
-    console.log('id', tripId)
-
     socket.send(JSON.stringify({
         action: 'join_trip',
         trip_id: tripId
     }));
 };
 
+function getSum(total, num) {
+  return total + num;
+}
 
 function renderSelectedSeats() {
    
-        chipContainer.innerHTML = selectedSeats.map((item) =>
-            `<span class="inline-flex items-center gap-2 rounded-full bg-navy-50 py-1.5 pl-3 pr-1.5 text-sm font-bold text-navy-700">
-                        Seat ${item.seat_number}
-                        <button type="button" data-remove-seat-id="${item.seat_id}" class="remove-seat grid h-6 w-6 place-items-center rounded-full hover:bg-white" aria-label="Remove seat ${item.seat_number}">
-                            <svg viewBox="0 0 20 20" class="h-3.5 w-3.5" fill="currentColor">
-                                <path d="m5.3 4.2 4.7 4.7 4.7-4.7 1.1 1.1-4.7 4.7 4.7 4.7-1.1 1.1-4.7-4.7-4.7 4.7-1.1-1.1 4.7-4.7-4.7-4.7z" />
-                            </svg>
-                        </button>
-                    </span>`
-        ).join('')
+    chipContainer.innerHTML = selectedSeats.map((item) =>
+        `<span class="inline-flex items-center gap-2 rounded-full bg-navy-50 py-1.5 pl-3 pr-1.5 text-sm font-bold text-navy-700">
+                    Seat ${item.seat_number}
+                    <button type="button" data-remove-seat-id="${item.seat_id}" class="remove-seat grid h-6 w-6 place-items-center rounded-full hover:bg-white" aria-label="Remove seat ${item.seat_number}">
+                        <svg viewBox="0 0 20 20" class="h-3.5 w-3.5" fill="currentColor">
+                            <path d="m5.3 4.2 4.7 4.7 4.7-4.7 1.1 1.1-4.7 4.7 4.7 4.7-1.1 1.1-4.7-4.7-4.7 4.7-1.1-1.1 4.7-4.7-4.7-4.7z" />
+                        </svg>
+                    </button>
+                </span>`
+    ).join('')
 
-      
+
+    if(selectedSeats.length > 0){
+        totalContainer.classList.remove('hidden')
+        totalContainer.classList.add('block')
+    }
+
+    if(selectedSeats.length == 0){
+        totalContainer.classList.add('hidden')
+    }
+
+    //const price = selectedSeats.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    const price = selectedSeats.reduce((sum, seat) => { return sum + Number(seat.price)}, 0);
+    totalPrice.innerHTML = `${price} PKR`;
+
+    paymentButton.disabled = selectedSeats.length == 0 ? true : false
+
+    
+
 }
 
 const seatClass = (status) =>{
@@ -94,6 +113,9 @@ const seatClass = (status) =>{
 
 
 function holdSeat(btn, element) {
+    if(selectedSeats.length == 4){
+        return;
+    }
     let selected = socketSeats.find((item) => item.seat_id == element.seat_id)
     selected.status = 'hold';
     selectedSeats.push(selected);
@@ -155,6 +177,7 @@ socket.onmessage = function (event) {
     }
     
     renderSeats()
+    renderSelectedSeats()
 
     console.log('sockets-seats', socketSeats);
     console.log('Seat update:', data);
