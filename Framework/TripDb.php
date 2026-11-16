@@ -27,6 +27,9 @@ class TripDb {
     
     }
 
+    public function getConn(){
+        return $this->conn;
+    }
 
     public function query(mixed $query, $params = []){
         try {
@@ -35,7 +38,6 @@ class TripDb {
            foreach ($params as $param => $value) {
              $sth->bindValue(':' . $param, $value);
            }
-
 
            $sth->execute();
            return $sth;

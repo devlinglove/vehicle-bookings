@@ -1,43 +1,26 @@
 <?php
 
+require __DIR__ . '/vendor/autoload.php';
+
 use Framework\Router;
+use Framework\Session;
 
-    require __DIR__ . '/vendor/autoload.php';
-    require('helpers.php');
+Session::start();
 
-    // $routes = [
-    //     '/' => 'controllers/home.php',
-    //     '/listings' => 'controllers/listings/index.php',
-    //     '/listings/create' => 'controllers/listings/create.php',
-    //     '404' => 'controllers/error/404.php',
-    // ];
+require('helpers.php');
+//require('bootstrap.php');
 
-    // $uri = $_SERVER['REQUEST_URI'];
+require basePath('Framework/Router.php');
+require basePath('Framework/Database.php');
 
-    // if(array_key_exists($uri, $routes)){
-    //     require(basePath($routes[$uri]));
-    // }
+$router = new Router();
 
-    // if(!array_key_exists($uri, $routes)){
-    //     require(basePath($routes['404']));
-    // }
+$routes = require basePath('routes.php');
 
+$uri = $_SERVER['REQUEST_URI'];
 
-    require basePath('Framework/Router.php');
-    require basePath('Framework/Database.php');
-   
-    
-    $router = new Router();
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-    $routes = require basePath('routes.php');
+$method = $_SERVER['REQUEST_METHOD'];
 
-    $uri = $_SERVER['REQUEST_URI'];
-
-    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-    $method = $_SERVER['REQUEST_METHOD'];
-
-    $router->route($uri, $method);
-
-
-?>
+$router->route($uri, $method);

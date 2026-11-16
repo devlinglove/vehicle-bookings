@@ -1,6 +1,7 @@
 <?php
     
     namespace Framework;
+    use Framework\Middleware\Authorize;
 
     class Router{
         protected $routes = [];
@@ -11,8 +12,11 @@
                 'method' => $method,
                 'uri' => $uri,
                 'controller' => $controller,
-                'controllerMethod' => $controllerMethod
+                'controllerMethod' => $controllerMethod,
+                'middleware' => []
             ];
+
+            return $this;
         }
 
         private function throwError($httpError = 404){
@@ -22,25 +26,42 @@
         }
 
         public function get(string $uri, string $controller){
-            $this->registerRoute('GET', $uri, $controller);
+            return $this->registerRoute('GET', $uri, $controller);
         }
 
-        public function route(string $uri, string $method){
-            foreach($this->routes as $route){
-                if($route['method'] == $method && $route['uri'] == $uri){
-                    
-                    $controller = 'App\\Controllers\\' . $route['controller'];
-                    $controllerMethod = $route['controllerMethod'];
+        public function only(array $roles){
+            $this->routes[array_key_last($this->routes)]['middleware'] = $roles;
+            return $this;
+        
+        }
 
-                    $controllerInstance = new $controller();
-                    $controllerInstance->$controllerMethod();
+        public function post(string $uri, string $controller){
+            $this->registerRoute('POST', $uri, $controller);
+        }
 
-                    return;
+
+    public function route(string $uri, string $method)
+    {
+        foreach ($this->routes as $route) {
+
+            if ($route['method'] == $method && $route['uri'] == $uri) {
+
+                foreach ($route['middleware'] as $role) {
+                    (new Authorize())->handle($role);
                 }
+
+                $controller = 'App\\Controllers\\' . $route['controller'];
+                $controllerMethod = $route['controllerMethod'];
+
+                $controllerInstance = new $controller();
+                $controllerInstance->$controllerMethod();
+
+                return;
             }
-           
-           $this->throwError(404); 
         }
+
+        $this->throwError(404);
+    }
 
     }
 
