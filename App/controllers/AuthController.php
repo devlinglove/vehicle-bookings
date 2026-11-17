@@ -55,7 +55,7 @@ class AuthController
             'email' => $user['email']
         ];
 
-        $dbUser = $this->db->query("Select id, password, name, email, city, state from users where email =:email", $params)->fetch();
+        $dbUser = $this->db->query("Select user_id, password, username, email, contact from users where email =:email", $params)->fetch();
         
         if (!$dbUser) {
             $errors['incorrect'] = 'Incorrect email or password';
@@ -68,11 +68,11 @@ class AuthController
 
         if(password_verify($user['password'], $dbUser->password)){
             Session::set('user', [
-                'userId' => $dbUser->id,
+                'userId' => $dbUser->user_id,
                 'email' => $dbUser->email,
-                'name' => $dbUser->name
+                'username' => $dbUser->username
             ]);
-            redirect('/');
+            redirect('/transporters');
         }
 
         if(!password_verify($user['password'], $dbUser->password)){
@@ -95,8 +95,9 @@ class AuthController
             'email' => $_POST['email'],
             'password' => $_POST['password'],
             'password_confirmation' => $_POST['password_confirmation'],
-            'city' => $_POST['city'],
-            'state' => $_POST['state'],
+            'contact' => $_POST['contact'],
+            //'city' => $_POST['city'],
+            //'state' => $_POST['state'],
         ];
 
         if (!empty($errors)) {
@@ -125,19 +126,26 @@ class AuthController
             'name' => $user['name'],
             'email' => $user['email'],
             'password' => password_hash($user['password'], PASSWORD_DEFAULT),
-            'city' => $user['city'],
-            'state' => $user['state']
+            'contact' => $_POST['contact'],
+            //'city' => $user['city'],
+            //'state' => $user['state']
         ];
 
-        $sql = "INSERT INTO users (name, email, password, city, state)
-        VALUES (:name, :email, :password, :city, :state)";
+        $sql = "INSERT INTO users (username, email, password, contact)
+        VALUES (:name, :email, :password, :contact)";
 
         $this->db->query($sql, $params);
 
         $userId = $this->db->getConn()->lastInsertId();
 
+        // Session::set('user', [
+        //     'userId' => $userId
+        // ]);
+
         Session::set('user', [
-            'userId' => $userId
+            'userId' => $userId,
+            'email' => $user['email'],
+            'name' => $user['name']
         ]);
 
         redirect("/");
@@ -150,6 +158,62 @@ class AuthController
 
         $params = session_get_cookie_params();
         setcookie('PHPSESSID', '', time() - 86400, $params['path'], $params['domain']);
+
+        redirect('/');
+    }
+
+    public function profile()
+    {
+        if (!Session::has('user')) {
+            redirect('/auth/login');
+            exit();
+        }
+
+        $userId = Session::get('user')['userId'];
+
+        $user = $this->db->query(
+            "SELECT username, email, contact FROM users WHERE user_id = :id", ['id' => $userId]
+        )->fetch();
+
+        loadView('auth/profile', [
+            'user' => $user
+        ]);
+    }
+
+    public function update()
+    {
+        if (!Session::has('user')) {
+            redirect('/auth/login');
+            exit();
+        }
+
+        $userId = Session::get('user')['userId'];
+
+        $name = $_POST['name'];
+        $email = $_POST['email'];
+        $contact = $_POST['contact'];
+
+        $params = [
+            'name' => $name,
+            'email' => $email,
+            'contact' => $contact,
+            'id' => $userId
+        ];
+
+        $sql = "UPDATE users
+            SET username = :name,
+                email = :email,
+                contact = :contact
+            WHERE user_id = :id";
+
+        $this->db->query($sql, $params);
+
+        // Update session information
+        Session::set('user', [
+            'userId' => $userId,
+            'username' => $name,
+            'email' => $email
+        ]);
 
         redirect('/');
     }

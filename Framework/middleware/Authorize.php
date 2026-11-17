@@ -11,12 +11,35 @@ class Authorize
     return Session::has('user');
   }
 
-  public function handle(string $role)
+  public function isAdminAuthenticated()
   {
-    if ($role === 'guest' && $this->isAuthenticated()) {
-      return redirect('/');
-    } elseif ($role === 'auth' && !$this->isAuthenticated()) {
-      return redirect('/auth/login');
-    }
+    return Session::has('admin');
   }
+
+  public function handle(string $role)
+    {
+        switch ($role) {
+
+            case 'guest':
+                if ($this->isAuthenticated()) {
+                    return redirect('/');
+                }
+                break;
+
+            case 'auth':
+                if (!$this->isAuthenticated()) {
+                    return redirect('/auth/login');
+                }
+                break;
+
+            case 'admin':
+                if (!$this->isAdminAuthenticated()) {
+                    return redirect('/transporters');
+                }
+                break;
+        }
+
+        return null;
+    }
+  
 }

@@ -18,6 +18,7 @@ class UserValidator
                 if (empty(trim($value))) return 'Please enter your name';
                 return '';
             },
+            
             'email' => function ($value) {
                 if (empty(trim($value))) return 'Please enter your email';
                 return self::isEmail($value) ? '' : 'Please enter a valid email address';
@@ -49,6 +50,21 @@ class UserValidator
 
                 if ($value !== ($data['password'] ?? '')) {
                     return 'Passwords do not match';
+                }
+
+                return '';
+            },
+           'transporter_id' => function ($value) {
+                if ($value === '' || $value === null) {
+                    return 'Please enter transporter ID';
+                }
+
+                if (filter_var($value, FILTER_VALIDATE_INT) === false) {
+                    return 'Transporter ID must be an integer';
+                }
+
+                if ((int) $value <= 0) {
+                    return 'Transporter ID must be greater than zero';
                 }
 
                 return '';
