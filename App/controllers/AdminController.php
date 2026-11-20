@@ -72,7 +72,7 @@ class AdminController
                 'email' => $dbUser->email,
                 'name' => $dbUser->name
             ]);
-            redirect('/transporters');
+            redirect('/trips');
         }
 
         if(!password_verify($user['password'], $dbUser->password)){
@@ -148,7 +148,7 @@ class AdminController
         ]);
 
 
-        redirect("/transporters");
+        redirect("/trips");
         
     }
 

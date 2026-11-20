@@ -13,7 +13,7 @@ function db(bool $reconnect = false): PDO
 
     if ($pdo === null || $reconnect) {
         $pdo = new PDO(
-            'mysql:host=127.0.0.1;dbname=vehicle_bookings;charset=utf8mb4',
+            'mysql:host=127.0.0.1;dbname=vehicle_bookings_management;charset=utf8mb4',
             'sample',
             'Zxcvb123@',
             [
@@ -45,6 +45,50 @@ function getTrips(): array
     }
 }
 
+function isConnectionLost(\PDOException $e): bool
+{
+    $code = $e->errorInfo[1] ?? null;
+    return in_array($code, [2006, 2013], true) || str_contains($e->getMessage(), 'gone away');
+}
+
+
+function getAllTrips(): array{
+    $sql = "
+        SELECT
+            s.stand_name,
+            s.status,
+            r.route_name,
+            v.vehicle_number,
+            v.vehicle_type,
+            v.vehicle_name, 
+            tr.trip_id, 
+            tr.departure_time, 
+            s.`status` AS stand_status,
+            tr.fare,
+            (SELECT COUNT(*) FROM trip_seats ts
+                WHERE ts.trip_id = tr.trip_id) AS total_seats,
+
+            (SELECT COUNT(*) FROM trip_seats ts
+                WHERE ts.trip_id = tr.trip_id AND ts.status = 'available') AS available_seats
+            
+        FROM trips tr
+        JOIN routes r ON tr.route_id = r.route_id
+        JOIN stands s ON s.stand_id = tr.departure_stand_id
+        JOIN vehicles v ON v.vehicle_id = tr.vehicle_id
+        WHERE tr.status = 'scheduled'
+        ORDER BY tr.departure_time DESC
+    ";
+
+    try {
+        return db()->query($sql)->fetchAll();
+    } catch (PDOException $e) {
+        if (!isConnectionLost($e)) {
+            throw $e;
+        }
+        return db(true)->query($sql)->fetchAll();
+    }
+}
+
 function getListRecords($query, $id): array
 {
     //$config = require basePath('config/db2.php');
@@ -66,23 +110,65 @@ function getListRecords($query, $id): array
     }
 }
 
+
+function getTripByTripId(int $id): array{
+    $sql = "
+        SELECT
+            s.stand_name,
+            s.status,
+            r.route_name,
+            v.vehicle_number,
+            v.vehicle_type,
+            v.vehicle_name, 
+            tr.trip_id, 
+            tr.departure_time, 
+            s.`status` AS stand_status,
+            tr.fare,
+            (SELECT COUNT(*) FROM trip_seats ts
+                WHERE ts.trip_id = tr.trip_id) AS total_seats,
+
+            (SELECT COUNT(*) FROM trip_seats ts
+                WHERE ts.trip_id = tr.trip_id AND ts.status = 'available') AS available_seats
+            
+        FROM trips tr
+        JOIN routes r ON tr.route_id = r.route_id
+        JOIN stands s ON s.stand_id = tr.departure_stand_id
+        JOIN vehicles v ON v.vehicle_id = tr.vehicle_id
+        WHERE tr.status = 'scheduled'
+        ORDER BY tr.departure_time DESC
+    ";
+
+    try {
+        return db()->query($sql)->fetchAll();
+    } catch (PDOException $e) {
+        if (!isConnectionLost($e)) {
+            throw $e;
+        }
+        return db(true)->query($sql)->fetchAll();
+    }
+}
+
+
 function getSeatsByTripId(int $id): array
 {
+    $sql = 
+        "SELECT
+            ts.trip_seat_id,
+            tr.trip_id,
+            tr.vehicle_id, 
+            tr.departure_time,
+            ts.fare,
+            ts.status,
+            ts.seat_number
+        FROM trip_seats ts JOIN trips tr ON tr.trip_id = ts.trip_id   
+        WHERE tr.trip_id = ?";
 
-    $sql = "SELECT 
-                    ts.id, trip_id, 
-                    ts.seat_id, price, 
-                    status, 
-                    locked_until, 
-                    s.seat_number, 
-                    s.seat_class
-                FROM trip_seats ts INNER JOIN seats s ON s.id = ts.seat_id  
-                WHERE trip_id = ?";
     try {
 
         $stmt = db(true)->prepare($sql);
         $stmt->execute([$id]);
         return $stmt->fetchAll();
+
     } catch (PDOException $e) {
         $stmt = db(true)->prepare($sql);
         $stmt->execute([$id]);
@@ -100,15 +186,13 @@ function updateSeatStatusByTripId(int $tripId, int $seatId, string $status): boo
         throw new InvalidArgumentException("Invalid status: $status");
     }
 
-    var_dump($tripId, $seatId, $status);
-
     if($status == 'available'){
 
         $sql = "
             UPDATE trip_seats
             SET status = :status,
             locked_until = NULL
-            WHERE seat_id = :seat_id 
+            WHERE trip_seat_id = :seat_id 
             AND trip_id = :trip_id
         ";
     }
@@ -119,7 +203,7 @@ function updateSeatStatusByTripId(int $tripId, int $seatId, string $status): boo
             UPDATE trip_seats
             SET status = :status,
             locked_until = DATE_ADD(NOW(), INTERVAL 1 MINUTE)
-            WHERE seat_id = :seat_id 
+            WHERE trip_seat_id = :seat_id 
             AND trip_id = :trip_id
             AND status = 'available'
         ";
@@ -135,12 +219,16 @@ function updateSeatStatusByTripId(int $tripId, int $seatId, string $status): boo
             ':trip_id' => $tripId,
             ':status'  => $status,
         ]);
+
     } catch (PDOException $e) {
+        error_log('error occured while updateing seat status' . $e->getMessage());
         $stmt = db(true)->prepare($sql);
         $stmt->execute([
             ':seat_id' => $seatId,
             ':trip_id' => $tripId,
+            ':status'  => $status,
         ]);
+        
     }
 
     return $stmt->rowCount() === 1;
@@ -152,9 +240,8 @@ function updateLockedSeats()
     try {
         $selectSql = "
         SELECT
-            id,
-            trip_id,
-            seat_id
+            trip_seat_id,
+            trip_id
         FROM trip_seats
         WHERE status = 'hold'
           AND locked_until IS NOT NULL
@@ -197,13 +284,42 @@ function updateLockedSeats()
 
 function broadcastSeats(Worker $ws, int $tripId): void
 {
-    $payload = json_encode(getSeatsByTripId($tripId));
+    //$payload = json_encode(getSeatsByTripId($tripId));
+
+    $payload = json_encode(
+         ['type' => 'seat_status_change', 'data' => getSeatsByTripId($tripId)],
+        JSON_THROW_ON_ERROR
+    );
+
     foreach ($ws->connections as $conn) {
         if (($conn->tripId ?? null) === $tripId) {
             $conn->send($payload);
         }
     }
 }
+
+function broadcastAllTrips(Worker $ws): void
+{
+    $payload = json_encode(
+        ['type' => 'all_trips', 'data' => getAllTrips()],
+        JSON_THROW_ON_ERROR
+    );
+
+    foreach ($ws->connections as $conn) {
+        try {
+            $conn->send($payload);
+        } catch (\Throwable $e) {
+            error_log('[ws] send failed to ' . $conn->id . ': ' . $e->getMessage());
+        }
+    }
+}
+
+function sendError(TcpConnection $conn, string $code, string $msg): void
+{
+    $conn->send(json_encode(['type' => 'error', 'code' => $code, 'message' => $msg]));
+}
+
+
 
 $ws = new Worker('websocket://0.0.0.0:8080');
 $ws->count = 1;
@@ -212,7 +328,7 @@ $ws->onWorkerStart = function () use ($ws) {
     db();
     echo "Database connected\n";
 
-    $time_interval = 60;
+    $time_interval = 120;
     Timer::add($time_interval, function () use ($ws) {
         echo "task run\n";
 
@@ -231,46 +347,150 @@ $ws->onConnect = function ($connection) {
     echo "New connection: {$connection->id}\n";
 };
 
+// $ws->onMessage = function (TcpConnection $connection, $data) use ($ws) {
+
+//     $message = json_decode($data, true);
+
+//     try {
+//         switch ($message['action'] ?? '') {
+//             case 'all_trips':
+//                 broadcastAllTrips($ws);
+//                 break;
+//             default:
+//                 sendError($connection, 'unknown_action', 'Unknown action');
+//         }
+//     } catch (\PDOException $e) {
+//         error_log('[ws] DB error: ' . $e->getMessage());
+//         sendError($connection, 'db_error', 'Could not load trips, please retry');
+//     } catch (\Throwable $e) {
+//         error_log('[ws] Unhandled: ' . $e);   // full stack trace
+//         sendError($connection, 'server_error', 'Something went wrong');
+//     }
+
+//     if (($message['action'] ?? '') === 'join_trip') {
+
+//         $connection->tripId = (int) $message['trip_id'];
+
+//         echo "Connection {$connection->id} joined trip {$connection->tripId}\n";
+
+//         try {
+//             $seats = getSeatsByTripId((int) $message['trip_id']);
+//             $connection->send(json_encode($seats)); // encode once only
+//         } catch (PDOException $e) {
+
+//             echo "DB error: {$e->getMessage()}\n";
+//             $connection->send(json_encode(['error' => 'Could not load trips']));
+//         }
+//     }
+
+//     if (($message['action'] ?? '') === 'seat_status_change') {
+
+//         $connection->tripId = (int) $message['trip_id'];
+//         $connection->seatId = (int) $message['seat_id'];
+
+//         try {
+//             $isSuccess = updateSeatStatusByTripId((int) $message['trip_id'], (int) $message['seat_id'], $message['status']);
+//             //$seatsAfterUpdate = getSeatsByTripId((int) $message['trip_id']);
+//             //$connection->send(json_encode($seatsAfterUpdate)); 
+
+//             broadcastSeats($ws, (int) $message['trip_id']);
+
+        
+//         } catch (PDOException $e) {
+
+//             echo "DB error: {$e->getMessage()}\n";
+//             $connection->send(json_encode(['error' => 'Could not load trips']));
+//         }
+//     }
+// };
+
 $ws->onMessage = function (TcpConnection $connection, $data) use ($ws) {
 
     $message = json_decode($data, true);
 
-    if (($message['action'] ?? '') === 'join_trip') {
-
-        $connection->tripId = (int) $message['trip_id'];
-
-        echo "Connection {$connection->id} joined trip {$connection->tripId}\n";
-
-        try {
-            $seats = getSeatsByTripId((int) $message['trip_id']);
-            $connection->send(json_encode($seats)); // encode once only
-        } catch (PDOException $e) {
-
-            echo "DB error: {$e->getMessage()}\n";
-            $connection->send(json_encode(['error' => 'Could not load trips']));
-        }
+    if (!is_array($message)) {
+        sendError($connection, 'invalid_json', 'Invalid JSON message');
+        return;
     }
 
-    if (($message['action'] ?? '') === 'seat_status_change') {
+    try {
+        switch ($message['action'] ?? '') {
 
-        $connection->tripId = (int) $message['trip_id'];
-        $connection->seatId = (int) $message['seat_id'];
+            case 'all_trips':
+                broadcastAllTrips($ws);
+                break;
 
-        try {
-            $isSuccess = updateSeatStatusByTripId((int) $message['trip_id'], (int) $message['seat_id'], $message['status']);
-            //$seatsAfterUpdate = getSeatsByTripId((int) $message['trip_id']);
-            //$connection->send(json_encode($seatsAfterUpdate)); 
+            case 'join_trip':
 
-            broadcastSeats($ws, (int) $message['trip_id']);
+                $tripId = (int) ($message['trip_id'] ?? 0);
 
-        
-        } catch (PDOException $e) {
+                if ($tripId <= 0) {
+                    sendError($connection, 'invalid_trip', 'Invalid trip ID');
+                    break;
+                }
 
-            echo "DB error: {$e->getMessage()}\n";
-            $connection->send(json_encode(['error' => 'Could not load trips']));
+                $connection->tripId = $tripId;
+
+                $seats = getSeatsByTripId($tripId);
+
+                $payload = json_encode(
+                    ['type' => 'join_trip', 'data' => $seats],
+                    JSON_THROW_ON_ERROR
+                );
+
+                $connection->send($payload);
+
+                break;
+
+            case 'seat_status_change':
+
+                $tripId = (int) ($message['trip_id'] ?? 0);
+                $seatId = (int) ($message['seat_id'] ?? 0);
+                $status = $message['status'] ?? '';
+
+                if ($tripId <= 0 || $seatId <= 0) {
+                    sendError($connection, 'invalid_data', 'Invalid trip or seat ID');
+                    break;
+                }
+
+                $isSuccess = updateSeatStatusByTripId(
+                    $tripId,
+                    $seatId,
+                    $status
+                );
+
+                if ($isSuccess) {
+                    broadcastSeats($ws, $tripId);
+                }
+
+                break;
+
+            default:
+                sendError($connection, 'unknown_action', 'Unknown action');
         }
+
+    } catch (PDOException $e) {
+
+        error_log('[ws] DB error: ' . $e->getMessage());
+
+        sendError(
+            $connection,
+            'db_error',
+            'Could not process database request' . $e->getMessage()
+        );
+
+    } catch (Throwable $e) {
+
+        error_log('[ws] Unhandled: ' . $e);
+
+        sendError(
+            $connection,
+            'server_error',
+            'Something went wrong'
+        );
     }
 };
+
 
 
 $ws->onClose = function (TcpConnection $connection) use (&$tripConnections) {

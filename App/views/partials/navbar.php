@@ -24,13 +24,17 @@ use Framework\Session;
             Update Profile
           </a>
 
+          <a href="/trips" class="text-white hover:underline">
+            Trips
+          </a>
+
           <form method="POST" action="/auth/logout">
             <button type="submit" class="text-white inline hover:underline">
               Logout
             </button>
           </form>
 
-          
+
 
 
         <?php else : ?>
@@ -51,10 +55,18 @@ use Framework\Session;
         Welcome <?= Session::get('admin')['name'] ?>
       </div>
 
+
+      <a href="/trips" class="text-white hover:underline">
+        Trips
+      </a>
+
       <form method="POST" action="/admin/logout">
         <button type="submit" class="text-white hover:underline">
           Admin Logout
         </button>
+
+
+
       </form>
 
     <?php else : ?>

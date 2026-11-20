@@ -24,12 +24,40 @@ const totalContainer = document.querySelector('.total-container')
 const totalPrice = document.querySelector('.total-price');
 const paymentButton = document.querySelector('.payment-button');
 
+paymentButton.addEventListener('click', async (event) => {
+ 
+  const seatIds = selectedSeats.map((item) => item.trip_seat_id);
+  if (!seatIds.length) return;
+
+    if (!seatIds.length) {
+        event.preventDefault();
+        alert('Please select at least one seat.');
+        return;
+    }
+
+    const box = document.getElementById('seat-inputs');
+    box.innerHTML = '';
+    for (const id of seatIds) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'seat_ids[]'; 
+        input.value = id;
+        box.append(input);
+    }
+    
+    event.submitter.disabled = true;  
+
+});
+
+
+
+
 chipContainer.addEventListener('click', (e) => {
     const btn = e.target.closest('.remove-seat')
     if (!btn) return
 
     const seatId = btn.dataset.removeSeatId
-    selectedSeats = selectedSeats.filter(s => s.seat_id != Number(seatId))
+    selectedSeats = selectedSeats.filter(s => s.trip_seat_id != Number(seatId))
 
     removeFromHold(Number(seatId))
     
@@ -38,16 +66,16 @@ chipContainer.addEventListener('click', (e) => {
 
 
 function removeFromHold(seatId) {
-    let selected = socketSeats.find((item) => item.seat_id == seatId)
+    let selected = socketSeats.find((item) => item.trip_seat_id == seatId)
     socket.send(JSON.stringify({
         action: 'seat_status_change',
         trip_id: selected.trip_id,
-        seat_id: selected.seat_id,
+        seat_id: selected.trip_seat_id,
         status: 'available'
     }));
 
-    // renderSelectedSeats()
-    // renderSeats()
+    renderSelectedSeats()
+    renderSeats()
 
 
 }
@@ -69,7 +97,7 @@ function renderSelectedSeats() {
     chipContainer.innerHTML = selectedSeats.map((item) =>
         `<span class="inline-flex items-center gap-2 rounded-full bg-navy-50 py-1.5 pl-3 pr-1.5 text-sm font-bold text-navy-700">
                     Seat ${item.seat_number}
-                    <button type="button" data-remove-seat-id="${item.seat_id}" class="remove-seat grid h-6 w-6 place-items-center rounded-full hover:bg-white" aria-label="Remove seat ${item.seat_number}">
+                    <button type="button" data-remove-seat-id="${item.trip_seat_id}" class="remove-seat grid h-6 w-6 place-items-center rounded-full hover:bg-white" aria-label="Remove seat ${item.seat_number}">
                         <svg viewBox="0 0 20 20" class="h-3.5 w-3.5" fill="currentColor">
                             <path d="m5.3 4.2 4.7 4.7 4.7-4.7 1.1 1.1-4.7 4.7 4.7 4.7-1.1 1.1-4.7-4.7-4.7 4.7-1.1-1.1 4.7-4.7-4.7-4.7z" />
                         </svg>
@@ -88,7 +116,7 @@ function renderSelectedSeats() {
     }
 
     //const price = selectedSeats.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
-    const price = selectedSeats.reduce((sum, seat) => { return sum + Number(seat.price)}, 0);
+    const price = selectedSeats.reduce((sum, seat) => { return sum + Number(seat.fare)}, 0);
     totalPrice.innerHTML = `${price} PKR`;
 
     paymentButton.disabled = selectedSeats.length == 0 ? true : false
@@ -116,20 +144,31 @@ function holdSeat(btn, element) {
     if(selectedSeats.length == 4){
         return;
     }
-    let selected = socketSeats.find((item) => item.seat_id == element.seat_id)
+
+    let selected = socketSeats.find((item) => item.trip_seat_id == element.trip_seat_id)
     selected.status = 'hold';
     selectedSeats.push(selected);
     renderSelectedSeats();
     socket.send(JSON.stringify({
         action: 'seat_status_change',
         trip_id: element.trip_id,
-        seat_id: element.seat_id,
+        seat_id: element.trip_seat_id,
         status: 'hold'
     }));
 
     renderSeats()
 
 }
+
+// document.querySelectorAll('.seat-grid button').forEach(btn => {
+//     btn.addEventListener('click', function () {
+//         const seatId = this.dataset.seatId;
+//         console.log('Selected seat:', seatId);
+//         holdSeat(this, seatId);
+//     });
+// });
+
+
 
 function renderSeats() {
     const group = document.querySelector('.seat-grid');
@@ -146,7 +185,7 @@ function renderSeats() {
 
         btn.className = seat;
         btn.textContent = element.seat_number;
-        btn.dataset.seatId = element.seat_id;
+        btn.dataset.seatId = element.trip_seat_id;
 
         if (element.status === 'hold') {
             btn.disabled = true;
@@ -165,22 +204,29 @@ function renderSeats() {
 const check = '<svg viewBox="0 0 20 20" class="h-3.5 w-3.5" fill="currentColor"><path d="M7.6 13.2 4.4 10l-1.1 1.1 4.3 4.3 9-9-1.1-1.1z"/></svg>';
 
 socket.onmessage = function (event) {
-    const data = JSON.parse(event.data);
-    if(data && Array.isArray(data) && data.length > 0){
-        socketSeats = data;
-        const availableSeats = socketSeats.filter((item) => item.status != 'booked')
-        const total = document.querySelector('.total-seats')
-        const available = document.querySelector('.available-seats')
-        total.textContent = socketSeats.length
-        available.textContent = availableSeats.length
+   
+    let data = null
+    const msg = JSON.parse(event.data);
 
+    if (msg.type == 'join_trip' || msg.type == 'seat_status_change') {
+        data = msg.data;
+        if (data && Array.isArray(data) && data.length > 0) {
+            socketSeats = data;
+            const availableSeats = socketSeats.filter((item) => item.status != 'booked')
+            const total = document.querySelector('.total-seats')
+            const available = document.querySelector('.available-seats')
+            total.textContent = socketSeats.length
+            available.textContent = availableSeats.length
+        }
     }
+
+    
     
     renderSeats()
     renderSelectedSeats()
 
     console.log('sockets-seats', socketSeats);
-    console.log('Seat update:', data);
+    console.log('Seat update:', event);
 };
 
 socket.onclose = function () {

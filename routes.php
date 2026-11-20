@@ -11,8 +11,8 @@
     // $router->get('/listings', 'ListingController@index');
     // $router->get('/listings/create', 'ListingController@create')->only(['auth']);
     // $router->get('/listing', 'ListingController@show');
-    // $router->get('/trips', 'TripsController@index');
-    // $router->get('/trip', 'TripsController@show');
+    //$router->get('/trips', 'TripsController@index');
+    //$router->get('/trip', 'TripsController@show');
 
     $router->get('/auth/login', 'AuthController@login');
     $router->get('/auth/register', 'AuthController@create');
@@ -40,13 +40,21 @@
     $router->get('/transporters/delete', 'TransporterController@delete')->only(['admin']);
     $router->post('/transporters/search-delete', 'TransporterController@searchDelete');
     $router->post('/transporters/delete', 'TransporterController@remove');
+
+
+    // $router->get('/admin/trips', 'TripController@index');
+    // $router->get('/admin/trips/create', 'TripController@create')->only(['admin']);
+    // $router->post('/admin/trips/create', 'TripController@store')
     
     
+    $router->get('/trips', 'TripsController@index');
+    $router->get('/trip', 'TripsController@show');
+    $router->get('/admin/trips/create', 'TripsController@create')->only(['admin']);
+    $router->post('/admin/trips/create', 'TripsController@store');
+
+    $router->post('/trips/checkout', 'TripsController@booking');
+    $router->get('/trips/checkout', 'TripsController@checkout');
 
 
-
-    // $router->get('/', 'controllers/home.php');
-    // $router->get('/listings', 'controllers/listings/index.php');
-    // $router->get('/listing', 'controllers/listings/show.php');
 
 ?>
