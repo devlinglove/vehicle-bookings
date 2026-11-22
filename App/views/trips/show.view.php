@@ -36,6 +36,8 @@ if (!Session::has('hold_token')) {
   Session::set('hold_token', bin2hex(random_bytes(32)));
 }
 
+//var_dump('token', Session::get('hold_token'))
+
 ?>
 
 <?php loadPartialView('header'); ?>
@@ -148,10 +150,12 @@ if (!Session::has('hold_token')) {
           <span class="total-price">Rs. 0</span>
         </div>
 
-        <div id="seat-inputs"></div>
+       
+
+
         <form method="POST" action="/checkout" id="continue-form">
           <input type="hidden" name="trip_id" value="<?= (int) $trip_id ?>">
-
+          <div id="seat-inputs"></div>
           <button
             type="submit"
             class="payment-button w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded mt-4 transition disabled:bg-gray-400 disabled:cursor-not-allowed">

@@ -1,5 +1,7 @@
 
-const socket = new WebSocket('ws://localhost:8080');
+//const socket = new WebSocket('ws://localhost:8080');
+const socket = new WebSocket(" https://fe87-39-46-10-36.ngrok-free.app")
+
 
 const tripId = window.tripId;
 let selectedSeats = []

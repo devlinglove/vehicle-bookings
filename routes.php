@@ -14,6 +14,14 @@
     //$router->get('/trips', 'TripsController@index');
     //$router->get('/trip', 'TripsController@show');
 
+    //initiate-payment
+    $router->post('/checkout', 'HomeController@bookings');
+    $router->get('/checkout', 'HomeController@checkout');
+    $router->post('/initiate-payment', 'HomeController@pay');
+    $router->get('/success', 'HomeController@success');
+    $router->get('/cancel', 'HomeController@cancel');
+
+
     $router->get('/auth/login', 'AuthController@login');
     $router->get('/auth/register', 'AuthController@create');
     $router->post('/auth/register', 'AuthController@store');
@@ -52,8 +60,6 @@
     $router->get('/admin/trips/create', 'TripsController@create')->only(['admin']);
     $router->post('/admin/trips/create', 'TripsController@store');
 
-    $router->post('/trips/checkout', 'TripsController@booking');
-    $router->get('/trips/checkout', 'TripsController@checkout');
 
 
 

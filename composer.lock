@@ -4,8 +4,56 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "477a2aba8013991edb87f6a9f0378562",
+    "content-hash": "fb26e46ebd2c31a523a8900b9360fea7",
     "packages": [
+        {
+            "name": "getsafepay/sfpy-php",
+            "version": "v0.0.23",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/getsafepay/sfpy-php.git",
+                "reference": "362ec36168ffa2f31cdde6b2eb494a20851ce846"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/getsafepay/sfpy-php/zipball/362ec36168ffa2f31cdde6b2eb494a20851ce846",
+                "reference": "362ec36168ffa2f31cdde6b2eb494a20851ce846",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "php": ">=5.6.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "3.5.0",
+                "phpstan/phpstan": "^1.2",
+                "phpunit/phpunit": "^5.7 || ^9.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Safepay\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Safepay",
+                    "email": "integrations@getsafepay.com"
+                }
+            ],
+            "description": "Safepay PHP Library",
+            "support": {
+                "issues": "https://github.com/getsafepay/sfpy-php/issues",
+                "source": "https://github.com/getsafepay/sfpy-php/tree/v0.0.23"
+            },
+            "time": "2026-06-19T13:25:39+00:00"
+        },
         {
             "name": "workerman/coroutine",
             "version": "v1.1.6",

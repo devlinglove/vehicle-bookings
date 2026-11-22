@@ -10,8 +10,10 @@ class TripDb {
 
     private PDO $conn;
 
-    public function __construct(mixed $config)
+    public function __construct(mixed $config2 = null)
     {
+        $config = require basePath('config/db2.php');
+
         $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['dbname']}";
 
         $options = [
@@ -27,7 +29,7 @@ class TripDb {
     
     }
 
-    public function getConn(){
+    public function getConn(): PDO {
         return $this->conn;
     }
 

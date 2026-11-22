@@ -177,7 +177,7 @@ function getSeatsByTripId(int $id): array
 }
 
 
-function updateSeatStatusByTripId(int $tripId, int $seatId, string $status): bool
+function updateSeatStatusByTripId(int $tripId, int $seatId, string $status, string $token): bool
 {
 
     $allowed = ['available', 'reserved', 'booked', 'hold'];
@@ -190,10 +190,12 @@ function updateSeatStatusByTripId(int $tripId, int $seatId, string $status): boo
 
         $sql = "
             UPDATE trip_seats
-            SET status = :status,
+            SET status = :status, 
+            held_by = NULL,
             locked_until = NULL
             WHERE trip_seat_id = :seat_id 
             AND trip_id = :trip_id
+            AND held_by = :token
         ";
     }
 
@@ -201,8 +203,7 @@ function updateSeatStatusByTripId(int $tripId, int $seatId, string $status): boo
 
         $sql = "
             UPDATE trip_seats
-            SET status = :status,
-            locked_until = DATE_ADD(NOW(), INTERVAL 1 MINUTE)
+            SET status = :status, held_by = :token, locked_until = DATE_ADD(NOW(), INTERVAL 3 MINUTE)
             WHERE trip_seat_id = :seat_id 
             AND trip_id = :trip_id
             AND status = 'available'
@@ -218,6 +219,7 @@ function updateSeatStatusByTripId(int $tripId, int $seatId, string $status): boo
             ':seat_id' => $seatId,
             ':trip_id' => $tripId,
             ':status'  => $status,
+            ':token' => $token
         ]);
 
     } catch (PDOException $e) {
@@ -261,7 +263,7 @@ function updateLockedSeats()
         $updateSql = "
         UPDATE trip_seats
         SET
-            status = 'available',
+            status = 'available', held_by = NULL,
             locked_until = NULL
         WHERE status = 'hold'
           AND locked_until IS NOT NULL
@@ -447,6 +449,7 @@ $ws->onMessage = function (TcpConnection $connection, $data) use ($ws) {
                 $tripId = (int) ($message['trip_id'] ?? 0);
                 $seatId = (int) ($message['seat_id'] ?? 0);
                 $status = $message['status'] ?? '';
+                $holdToken = $message['hold_token'] ?? '';
 
                 if ($tripId <= 0 || $seatId <= 0) {
                     sendError($connection, 'invalid_data', 'Invalid trip or seat ID');
@@ -456,7 +459,8 @@ $ws->onMessage = function (TcpConnection $connection, $data) use ($ws) {
                 $isSuccess = updateSeatStatusByTripId(
                     $tripId,
                     $seatId,
-                    $status
+                    $status,
+                    $holdToken
                 );
 
                 if ($isSuccess) {

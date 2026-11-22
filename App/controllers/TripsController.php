@@ -272,24 +272,110 @@ class TripsController
     }
 
     function checkout(){
+        $bookingId = (int) ($_GET['booking'] ?? 0);
+        $holder    = Session::get('hold_token');
+        $userId    = Session::get('user')['userId'] ?? null;
 
+
+        $stmt = $this->db->getConn()->prepare("
+            SELECT booking_id, trip_id, user_id, amount, status, TIMESTAMPDIFF(SECOND, NOW(), expires_at) AS seconds_left
+            FROM bookings
+            WHERE booking_id = ?
+        ");
+
+        $stmt->execute([$bookingId]);
+        $booking = $stmt->fetch();
+
+        $ownsBooking = $booking && ((int) Session::get('booking_id') === $bookingId || ($userId && (int) $booking->user_id === (int) $userId));
+
+        if (!$ownsBooking || $booking->status !== 'pending') {
+            return $this->failTo('/trips', 'This booking is no longer available.');
+        }
+
+        $tripUrl = '/trip?id=' . (int) $booking->trip_id;
+
+        if ((int) $booking->seconds_left <= 0) {
+            return $this->failTo($tripUrl, 'Your seat hold expired. Please choose your seats again.');
+        }
+
+        // 3. Trip details for the ticket summary
+        $stmt = $this->db->getConn()->prepare("
+            SELECT 
+                tr.trip_id, 
+                tr.departure_time, 
+                tr.fare,
+                r.route_name, 
+                s.stand_name,
+                v.vehicle_name, 
+                v.vehicle_number, 
+                v.vehicle_type
+            FROM trips tr
+            JOIN routes r   ON r.route_id   = tr.route_id
+            JOIN stands s   ON s.stand_id   = tr.departure_stand_id
+            JOIN vehicles v ON v.vehicle_id = tr.vehicle_id
+            WHERE tr.trip_id = ?
+        ");
+
+        $stmt->execute([$booking->trip_id]);
+        $trip = $stmt->fetch();
+
+        // 4. Seats in this booking, still held by this session
+        $stmt = $this->db->getConn()->prepare("
+            SELECT ts.trip_seat_id, ts.seat_number
+            FROM booking_seats bs
+            JOIN trip_seats ts ON ts.trip_seat_id = bs.trip_seat_id
+            WHERE bs.booking_id = ?
+            AND ts.status = 'hold'
+            AND ts.held_by = ?
+            ORDER BY ts.seat_number
+        ");
+        $stmt->execute([$bookingId, $holder]);
+        $seats = $stmt->fetchAll();
+
+        if (!$trip || !$seats) {
+            return $this->failTo($tripUrl, 'Your seats are no longer held. Please choose again.');
+        }
+
+            // 5. Errors and old input from a failed payment submit (flash values)
+            $errors = Session::get('checkout_errors') ?? [];
+            $old    = Session::get('checkout_old') ?? [];
+            Session::clear('checkout_errors');
+            Session::clear('checkout_old');
+
+            // 6. Give the view everything it needs
+            loadView('trips/checkout', [
+                'booking'     => $booking,
+                'trip'        => $trip,
+                'seats'       => $seats,
+                'secondsLeft' => (int) $booking->seconds_left,
+                'errors'      => $errors,
+                'old'         => $old,
+            ]);
     }
 
-    function booking()
+    function bookings()
     {
         $conn = $this->db->getConn();
 
         $user      = Session::get('user');
-        $userId    = $user['id'] ?? null;
+        $userId    = $user['userId'] ?? null;
 
         $tripId = (int) ($_POST['trip_id'] ?? 0);
+        $holder = Session::get('hold_token');
+
+        //dd($holder);
+
         $back   = '/trip?id=' . $tripId;
 
         $seatIds = array_values(array_unique(array_filter(array_map('intval', $_POST['seat_ids'] ?? []))));
+
+        var_dump(count($seatIds), $seatIds);
         
         if (!$tripId || !$seatIds || count($seatIds) > 4) {
             $this->failTo($back, 'Choose between 1 and 4 seats.');
+            //exit(1);
         }
+
 
         $respond = function (int $status, array $body) {
             http_response_code($status);
@@ -308,14 +394,15 @@ class TripsController
                 FROM trip_seats ts
                 JOIN trips tr ON tr.trip_id = ts.trip_id
                 WHERE ts.trip_id = ? AND ts.trip_seat_id IN ($in)
-                AND ts.status = 'hold' AND ts.held_by = ? AND ts.locked_until >= NOW()
+                AND ts.status = 'hold' AND held_by = ? AND ts.locked_until >= NOW()
                 FOR UPDATE
             ");
 
-            $stmt->execute([$tripId, ...$seatIds]);
+            $stmt->execute([$tripId, ...$seatIds, $holder]);
             $rows = $stmt->fetchAll();
 
             if (count($rows) !== count($seatIds)) {
+
                 $conn->rollBack();
                 $lost = array_values(array_diff($seatIds, array_column($rows, 'trip_seat_id')));
 
@@ -323,8 +410,15 @@ class TripsController
                     'message'    => 'Some of your seats are no longer held. Please choose again.',
                     'lost_seats' => $lost,
                 ]);
+            }
 
-                $amount = (float) $rows[0]['fare'] * count($rows);
+                $fareBySeat = [];
+                $amount = 0;
+
+                foreach ($rows as $row) {
+                    $fareBySeat[$row->trip_seat_id] = $row->fare;
+                    $amount += $row->fare;
+                }
 
                 $stmt = $conn->prepare("
                     INSERT INTO bookings (trip_id, user_id, amount, status, expires_at)
@@ -339,9 +433,11 @@ class TripsController
 
                 $bookingId = (int) $conn->lastInsertId();
 
-                $link = $conn->prepare("INSERT INTO booking_seats (booking_id, trip_seat_id) VALUES (?, ?, ?)");
-                foreach ($seatIds as $seatId) {
-                    $link->execute([$bookingId, $seatId, $rows[0]['fare']]);
+                $link = $conn->prepare("INSERT INTO booking_seats (booking_id, trip_seat_id, fare) VALUES (?, ?, ?)");
+
+               foreach ($seatIds as $seatId) {
+                    $fare = $fareBySeat[$seatId];
+                    $link->execute([$bookingId, $seatId, $fare]);
                 }
 
                 // Extend the hold to cover the checkout time
@@ -350,18 +446,20 @@ class TripsController
                     WHERE trip_id = ? AND trip_seat_id IN ($in) AND held_by = ?
                 ");
         
-                $stmt->execute([$tripId, ...$seatIds]);
+                $stmt->execute([$tripId, ...$seatIds, $holder]);
 
                 $conn->commit();
-            }
+            
         } catch (\Throwable $e) {
             if ($conn->inTransaction()) $conn->rollBack();
             error_log('[checkout] ' . $e);
-            $respond(500, ['message' => 'Could not start checkout. Please try again.']);
+            $respond(500, ['message' => 'Could not start checkout. Please try again.' . $e->getMessage()]);
         }
 
         Session::set('booking_id', $bookingId);   
-        $respond(200, ['redirect' => '/checkout?booking=' . $bookingId]);
+        redirect('/trips/checkout?booking=' . $bookingId);
+        //$respond(200, ['redirect' => '/trips/checkout?booking=' . $bookingId]);
+
     }
 
     /**

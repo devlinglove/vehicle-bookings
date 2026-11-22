@@ -11,7 +11,8 @@ const SOCKET_URL = `ws://localhost:8080`;
 let gotLiveData = false;
 
 function connect() {
-  const ws = new WebSocket(SOCKET_URL);
+  //const ws = new WebSocket(SOCKET_URL);
+  const ws = new WebSocket(" https://fe87-39-46-10-36.ngrok-free.app")
 
   ws.onopen = () => {
     ws.send(JSON.stringify({ action: 'all_trips' }));

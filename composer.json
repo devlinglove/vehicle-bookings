@@ -8,7 +8,8 @@
         }
     ],
     "require": {
-        "workerman/workerman": "^5.2"
+        "workerman/workerman": "^5.2",
+        "getsafepay/sfpy-php": "^0.0.23"
     },
     "autoload": {
         "psr-4": {

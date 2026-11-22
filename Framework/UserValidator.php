@@ -54,6 +54,18 @@ class UserValidator
 
                 return '';
             },
+            'phone' => function ($value) {
+                if (empty($value)) {
+                    return 'Please enter your phone number';
+                }
+
+                // Pakistani mobile number validation
+                if (!preg_match('/^(03[0-9]{9}|\+923[0-9]{9}|923[0-9]{9})$/', $value)) {
+                    return 'Please enter a valid Pakistani phone number';
+                }
+
+                return '';
+            },
            'transporter_id' => function ($value) {
                 if ($value === '' || $value === null) {
                     return 'Please enter transporter ID';

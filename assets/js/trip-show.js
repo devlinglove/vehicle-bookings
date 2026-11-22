@@ -1,7 +1,9 @@
 
-const socket = new WebSocket('ws://localhost:8080');
+//const socket = new WebSocket('ws://localhost:8080');
+const socket = new WebSocket(" https://fe87-39-46-10-36.ngrok-free.app")
 
 const tripId = window.tripId;
+const token = window.holdToken
 let selectedSeats = []
 let socketSeats = []
 
@@ -45,7 +47,7 @@ paymentButton.addEventListener('click', async (event) => {
         box.append(input);
     }
     
-    event.submitter.disabled = true;  
+    //event.submitter.disabled = true;  
 
 });
 
@@ -71,7 +73,8 @@ function removeFromHold(seatId) {
         action: 'seat_status_change',
         trip_id: selected.trip_id,
         seat_id: selected.trip_seat_id,
-        status: 'available'
+        status: 'available',
+        hold_token: holdToken
     }));
 
     renderSelectedSeats()
@@ -153,7 +156,8 @@ function holdSeat(btn, element) {
         action: 'seat_status_change',
         trip_id: element.trip_id,
         seat_id: element.trip_seat_id,
-        status: 'hold'
+        status: 'hold',
+        hold_token: holdToken
     }));
 
     renderSeats()
