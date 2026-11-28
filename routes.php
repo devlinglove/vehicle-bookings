@@ -25,6 +25,10 @@
     $router->get('/voucher', 'HomeController@voucher');
     $router->post('/upload', 'HomeController@upload');
 
+    $router->post('/payment-redirect', 'HomeController@paymentRedirect');
+
+    
+
 
     $router->get('/auth/login', 'AuthController@login');
     $router->get('/auth/register', 'AuthController@create');

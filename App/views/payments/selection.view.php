@@ -30,6 +30,7 @@ $seatCount = count($seats);
         <!-- Payment methods -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+            
             <!-- Online payment card -->
             <div id="online-card"
                 data-method="online"
@@ -65,32 +66,9 @@ $seatCount = count($seats);
 
         </div>
 
-        <!-- Instructions -->
-
     </div>
 
-    <!-- Booking Summary -->
-    <!-- <div class="bg-white rounded-2xl border p-6 h-fit">
 
-        
-        <div class="space-y-2 text-sm text-gray-600">
-            <div class="flex justify-between">
-                <span>Fare per seat</span>
-                <span class="tabular-nums">Rs. <?= number_format(2000) ?></span>
-            </div>
-            <div class="flex justify-between">
-                <span>Seats</span>
-                <span class="tabular-nums">× <?= 2 ?></span>
-            </div>
-        </div>
-
-        <div class="mt-4 flex items-baseline justify-between border-t border-gray-100 pt-4">
-            <span class="font-semibold text-gray-900">Total</span>
-            <span class="text-3xl font-bold tabular-nums text-gray-900">Rs. <?= number_format(4000) ?></span>
-        </div>
-
-        
-    </div> -->
 
     <aside class="ticket lg:sticky lg:top-8">
         <?php loadPartialView('trip-detail', [
@@ -106,21 +84,6 @@ $seatCount = count($seats);
 
 
         <div class="rounded-b-2xl bg-white p-6 pt-3">
-            <!-- <div class="space-y-2 text-sm text-gray-600">
-                    <div class="flex justify-between">
-                        <span>Fare per seat</span>
-                        <span class="tabular-nums">Rs. <?= number_format($fare) ?></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Seats</span>
-                        <span class="tabular-nums">× <?= $seatCount ?></span>
-                    </div>
-                </div>
-
-                <div class="mt-4 flex items-baseline justify-between border-t border-gray-100 pt-4">
-                    <span class="font-semibold text-gray-900">Total</span>
-                    <span class="text-3xl font-bold tabular-nums text-gray-900">Rs. <?= number_format($amount) ?></span>
-                </div> -->
 
             <?php loadPartialView('trip-seats', [
                 'booking' => $booking,
@@ -128,11 +91,17 @@ $seatCount = count($seats);
                 'trip' => $trip
             ]); ?>
 
+            <form action="/payment-redirect" method="POST">
 
-            <button type="submit" id="pay-button"
-                class="mt-5 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-400">
-                Pay Rs. <?= number_format($amount) ?> with Easypaisa
-            </button>
+                <input type="hidden" name="payment_method" class="payment_method" value="voucher">
+                <input type="hidden" name="booking_id" value="<?= $booking->booking_id ?>">
+
+                <button type="submit" id="payment-action" class="mt-5 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-400">
+                    Pay
+                </button>
+
+            </form>
+
 
             <p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500">
                 <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -157,6 +126,10 @@ $seatCount = count($seats);
 
         let selectedMethod = 'voucher';
 
+        function setBtnText(selectedMethod) {
+            actionButton.textContent = selectedMethod === 'online' ? 'Pay online now' : 'Generate voucher';
+        }
+
         cards.forEach(card => {
             card.addEventListener('click', () => {
 
@@ -174,12 +147,14 @@ $seatCount = count($seats);
 
                 selectedMethod = card.dataset.method;
 
-                actionButton.textContent =
-                    selectedMethod === 'online' ?
-                    'Pay online now' :
-                    'Generate voucher';
+                document.querySelector('.payment_method').value = card.dataset.method
+
+                setBtnText(selectedMethod)
+
             });
         });
+
+        setBtnText(selectedMethod)
     </script>
 
 

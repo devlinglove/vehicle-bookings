@@ -358,9 +358,12 @@ class HomeController
     
 
     public function voucher(){
-        $bookingId = (int)($_GET['booking_id'] ?? 4213);
+        $bookingId = (int)($_GET['booking_id'] ?? null);
+        $user      = Session::get('user');
+        $userId    = $user['userId'] ?? null;
+    
 
-        $booking = $this->getBookingById($bookingId);
+        $booking = $this->getBooking($bookingId, $userId);
 
         if (!$booking) {
             http_response_code(404);
@@ -670,6 +673,22 @@ class HomeController
             http_response_code(500);
             echo 'Unable to initiate payment.' . $e->getMessage();
         }
+    }
+
+    function paymentRedirect(){
+
+        $method = $_POST['payment_method'] ?? null;
+        $booking_id = $_POST['booking_id'] ?? null;
+
+
+        if ($method === 'online') {
+            redirect('/pay?booking_id=' . $booking_id);
+        }
+
+        if ($method === 'voucher') {
+           redirect('/voucher?booking_id=' . $booking_id);
+        }
+
     }
 
 
