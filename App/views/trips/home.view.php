@@ -9,7 +9,7 @@ use Framework\Session;
 
  //$pageScripts = ['trips-show.js'];
 
- echo phpinfo();
+//  echo phpinfo();
 
 ?>
 

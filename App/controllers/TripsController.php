@@ -368,8 +368,6 @@ class TripsController
         $back   = '/trip?id=' . $tripId;
 
         $seatIds = array_values(array_unique(array_filter(array_map('intval', $_POST['seat_ids'] ?? []))));
-
-        var_dump(count($seatIds), $seatIds);
         
         if (!$tripId || !$seatIds || count($seatIds) > 4) {
             $this->failTo($back, 'Choose between 1 and 4 seats.');

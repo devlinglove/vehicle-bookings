@@ -151,9 +151,7 @@ if (!Session::has('hold_token')) {
         </div>
 
        
-
-
-        <form method="POST" action="/checkout" id="continue-form">
+        <form method="POST" action="/booking" id="continue-form">
           <input type="hidden" name="trip_id" value="<?= (int) $trip_id ?>">
           <div id="seat-inputs"></div>
           <button
@@ -161,8 +159,14 @@ if (!Session::has('hold_token')) {
             class="payment-button w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded mt-4 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
             Continue to passenger details
           </button>
-
         </form>
+
+         <a href="/checkout/selection"
+            class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-2 rounded-lg transition duration-200 mb-6">
+            Selection Checkout
+        </a>
+
+        
 
 
         <p class="seat-limit-msg hidden mt-3 text-center text-sm text-red-500">

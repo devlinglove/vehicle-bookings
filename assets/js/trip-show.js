@@ -1,6 +1,6 @@
 
-//const socket = new WebSocket('ws://localhost:8080');
-const socket = new WebSocket(" https://fe87-39-46-10-36.ngrok-free.app")
+const socket = new WebSocket('ws://localhost:8080');
+//const socket = new WebSocket(" https://fe87-39-46-10-36.ngrok-free.app")
 
 const tripId = window.tripId;
 const token = window.holdToken
@@ -120,7 +120,12 @@ function renderSelectedSeats() {
 
     //const price = selectedSeats.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
     const price = selectedSeats.reduce((sum, seat) => { return sum + Number(seat.fare)}, 0);
-    totalPrice.innerHTML = `${price} PKR`;
+    const priceInFormat = price.toLocaleString('en-US', {
+        //minimumFractionDigits: 2,
+        //maximumFractionDigits: 2
+    })
+
+    totalPrice.innerHTML = `${priceInFormat} PKR`;
 
     paymentButton.disabled = selectedSeats.length == 0 ? true : false
 

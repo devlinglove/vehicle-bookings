@@ -205,7 +205,6 @@ class SafePay
 
     private function createCheckoutUrl(string $token, string $authToken)
     {
-        var_dump($token, $authToken);
         try {
             $checkoutURL = \Safepay\Checkout::constructURL([
                 // either production or sandbox

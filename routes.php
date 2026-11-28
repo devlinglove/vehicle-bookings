@@ -15,11 +15,15 @@
     //$router->get('/trip', 'TripsController@show');
 
     //initiate-payment
-    $router->post('/checkout', 'HomeController@bookings');
+    $router->post('/booking', 'HomeController@bookings');
     $router->get('/checkout', 'HomeController@checkout');
-    $router->post('/initiate-payment', 'HomeController@pay');
+    $router->post('/initiate-payment', 'HomeController@initiatePayment');
     $router->get('/success', 'HomeController@success');
     $router->get('/cancel', 'HomeController@cancel');
+    
+    $router->get('/checkout/selection', 'HomeController@selection');
+    $router->get('/voucher', 'HomeController@voucher');
+    $router->post('/upload', 'HomeController@upload');
 
 
     $router->get('/auth/login', 'AuthController@login');

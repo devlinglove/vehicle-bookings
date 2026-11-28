@@ -77,3 +77,15 @@ Stack trace:
 2026-11-20 11:18:13 pid:1 Worker process terminated
 2026-11-20 11:24:25 pid:1 Worker process terminated
 2026-11-21 18:05:01 pid:1 Worker process terminated
+2026-11-24 16:36:43 pid:1 PDOException: SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it in C:\Users\PC\Videos\Github\vehicle-bookings\socket\socket-server.php:15
+Stack trace:
+#0 C:\Users\PC\Videos\Github\vehicle-bookings\socket\socket-server.php(15): PDO->__construct('mysql:host=127....', 'sample', Object(SensitiveParameterValue), Array)
+#1 C:\Users\PC\Videos\Github\vehicle-bookings\socket\socket-server.php(330): db()
+#2 C:\Users\PC\Videos\Github\vehicle-bookings\vendor\workerman\workerman\src\Worker.php(2641): {closure}(Object(Workerman\Worker))
+#3 [internal function]: Workerman\Worker->Workerman\{closure}()
+#4 C:\Users\PC\Videos\Github\vehicle-bookings\vendor\workerman\workerman\src\Worker.php(2659): Fiber->start()
+#5 C:\Users\PC\Videos\Github\vehicle-bookings\vendor\workerman\workerman\src\Worker.php(1619): Workerman\Worker->run()
+#6 C:\Users\PC\Videos\Github\vehicle-bookings\vendor\workerman\workerman\src\Worker.php(1536): Workerman\Worker::forkWorkersForWindows()
+#7 C:\Users\PC\Videos\Github\vehicle-bookings\vendor\workerman\workerman\src\Worker.php(603): Workerman\Worker::forkWorkers()
+#8 C:\Users\PC\Videos\Github\vehicle-bookings\socket\socket-server.php(520): Workerman\Worker::runAll()
+#9 {main}

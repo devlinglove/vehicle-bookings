@@ -1,5 +1,6 @@
 <?php
 
+use Cloudinary\Cloudinary;
 use Framework\Session;
 
 function basePath($path = '')
@@ -87,3 +88,25 @@ function failTo(string $url, string $message): void
     exit;
 }
 
+
+function cloudinary(): Cloudinary
+{
+    static $client = null;
+
+    $configPath = basePath('config/cloudinary.php');
+
+    if (!file_exists($configPath)) {
+        die('Cloudinary config file not found!');
+    }
+
+    $cloudinary = require $configPath;
+
+    return $client ??= $cloudinary;
+}
+
+
+// function cloudinary(): Cloudinary
+// {
+//     static $client = null;
+//     return $client ??= require basePath('config/cloudinary.php');
+// }

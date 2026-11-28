@@ -48,7 +48,7 @@ use Framework\Session;
   </div>
 
   <!-- Admin Login Below Navbar (Right Side) -->
-  <div class="container mx-auto flex justify-end items-center gap-4 mt-3">
+  <!-- <div class="container mx-auto flex justify-end items-center gap-4 mt-3">
     <?php if (Session::has('admin')) : ?>
 
       <div class="text-blue-500">
@@ -80,6 +80,7 @@ use Framework\Session;
       </a>
 
     <?php endif; ?>
-  </div>
+
+  </div> -->
 
 </header>

@@ -143,8 +143,8 @@ $backUrl = '/trip?id=' . (int) $trip->trip_id;
                     </div>
                     <div>
                         <label for="name" class="mb-1 block text-sm font-semibold text-gray-700">
-                            Name 
-                        <span class="font-normal text-gray-400"></span>
+                            Name
+                            <span class="font-normal text-gray-400"></span>
                         </label>
                         <input
                             id="name"
@@ -152,8 +152,7 @@ $backUrl = '/trip?id=' . (int) $trip->trip_id;
                             type="text"
                             maxlength="150"
                             value="<?= $val('email') ?>"
-                            class="<?= $input('name') ?>" 
-                        />
+                            class="<?= $input('name') ?>" />
                         <?= $err('name') ?>
                     </div>
                     <div>
@@ -204,7 +203,7 @@ $backUrl = '/trip?id=' . (int) $trip->trip_id;
         <aside class="ticket lg:sticky lg:top-8">
 
             <!-- Top half -->
-            <div class="rounded-t-2xl bg-white p-6">
+            <!-- <div class="rounded-t-2xl bg-white p-6">
                 <div class="flex items-center justify-between text-sm text-gray-500">
                     <span>Booking #<?= (int) $booking->booking_id ?></span>
                     <span><?= date('D, d M Y', $departs) ?></span>
@@ -271,7 +270,14 @@ $backUrl = '/trip?id=' . (int) $trip->trip_id;
                         </dd>
                     </div>
                 </dl>
-            </div>
+            </div> -->
+
+            <?php loadPartialView('trip-detail', [
+                'booking' => $booking,
+                'seats' => $seats,
+                'trip' => $trip
+            ]); ?>
+
 
             <!-- Tear line -->
             <div class="ticket-perf relative" aria-hidden="true">
@@ -280,7 +286,7 @@ $backUrl = '/trip?id=' . (int) $trip->trip_id;
 
             <!-- Stub -->
             <div class="rounded-b-2xl bg-white p-6 pt-3">
-                <div class="space-y-2 text-sm text-gray-600">
+                <!-- <div class="space-y-2 text-sm text-gray-600">
                     <div class="flex justify-between">
                         <span>Fare per seat</span>
                         <span class="tabular-nums">Rs. <?= number_format($fare) ?></span>
@@ -294,12 +300,24 @@ $backUrl = '/trip?id=' . (int) $trip->trip_id;
                 <div class="mt-4 flex items-baseline justify-between border-t border-gray-100 pt-4">
                     <span class="font-semibold text-gray-900">Total</span>
                     <span class="text-3xl font-bold tabular-nums text-gray-900">Rs. <?= number_format($amount) ?></span>
-                </div>
+                </div> -->
+
+                <?php loadPartialView('trip-seats', [
+                    'booking' => $booking,
+                    'seats' => $seats,
+                    'trip' => $trip
+                ]); ?>
+
 
                 <button type="submit" id="pay-button"
                     class="mt-5 w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:cursor-not-allowed disabled:bg-gray-400">
                     Pay Rs. <?= number_format($amount) ?> with Easypaisa
                 </button>
+
+                <!-- <a href="/selection?trip_id=<?= (int) $trip->trip_id ?>&booking_id=<?= (int) $booking->booking_id ?>"
+                    class="block text-center w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-4 transition">
+                    Go to selection
+                </a> -->
 
                 <p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-500">
                     <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
